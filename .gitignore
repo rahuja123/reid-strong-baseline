@@ -5,7 +5,7 @@ log/
 saved-models/
 train_imagenet.py
 .idea/
-
+checkpoints/
 # OS X
 .DS_Store
 .Spotlight-V100
