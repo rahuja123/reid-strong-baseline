@@ -33,8 +33,8 @@ def create_supervised_trainer(model, optimizer, loss_fn,
         Engine: a trainer engine with supervised update function
     """
     if device:
-        if torch.cuda.device_count() > 1:
-            model = nn.DataParallel(model)
+        # if torch.cuda.device_count() > 1:
+        #     model = nn.DataParallel(model)
         model.to(device)
 
     def _update(engine, batch):
@@ -70,8 +70,8 @@ def create_supervised_trainer_with_center(model, center_criterion, optimizer, op
         Engine: a trainer engine with supervised update function
     """
     if device:
-        if torch.cuda.device_count() > 1:
-            model = nn.DataParallel(model)
+        # if torch.cuda.device_count() > 1:
+        #     model = nn.DataParallel(model)
         model.to(device)
 
     def _update(engine, batch):
@@ -81,8 +81,9 @@ def create_supervised_trainer_with_center(model, center_criterion, optimizer, op
         img, target = batch
         img = img.to(device) if torch.cuda.device_count() >= 1 else img
         target = target.to(device) if torch.cuda.device_count() >= 1 else target
-        score, feat = model(img)
-        loss = loss_fn(score, feat, target)
+        pid_scores, camid_scores, feats = model(img)
+        loss = loss_fn(pid_scores, camid_scores, feats, target)
+        # loss = loss_fn(score, feat, target)
         # print("Total loss is {}, center loss is {}".format(loss, center_criterion(feat, target)))
         loss.backward()
         optimizer.step()
@@ -146,7 +147,7 @@ def do_train(
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
     eval_period = cfg.SOLVER.EVAL_PERIOD
     output_dir = cfg.OUTPUT_DIR
-    device = cfg.MODEL.DEVICE
+    device = cfg.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
 
     logger = logging.getLogger("reid_baseline.train")
@@ -226,7 +227,7 @@ def do_train_with_center(
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
     eval_period = cfg.SOLVER.EVAL_PERIOD
     output_dir = cfg.OUTPUT_DIR
-    device = cfg.MODEL.DEVICE
+    device = cfg.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
 
     logger = logging.getLogger("reid_baseline.train")

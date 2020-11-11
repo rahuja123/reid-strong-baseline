@@ -6,7 +6,7 @@
 
 from torch.utils.data import DataLoader
 
-from .collate_batch import train_collate_fn, val_collate_fn
+from .collate_batch import train_collate_fn, val_collate_fn, multitask_train_collate_fn
 from .datasets import init_dataset, ImageDataset
 from .samplers import RandomIdentitySampler, RandomIdentitySampler_alignedreid  # New add by gu
 from .transforms import build_transforms
@@ -24,6 +24,13 @@ def make_data_loader(cfg):
 
     num_classes = dataset.num_train_pids
     train_set = ImageDataset(dataset.train, train_transforms)
+
+    train_collator= train_collate_fn
+    val_collator= val_collate_fn
+
+    if 'multitask' in cfg.MODEL.METRIC_LOSS_TYPE:
+        train_collator = multitask_train_collate_fn
+
     if cfg.DATALOADER.SAMPLER == 'softmax':
         train_loader = DataLoader(
             train_set, batch_size=cfg.SOLVER.IMS_PER_BATCH, shuffle=True, num_workers=num_workers,
@@ -34,12 +41,12 @@ def make_data_loader(cfg):
             train_set, batch_size=cfg.SOLVER.IMS_PER_BATCH,
             sampler=RandomIdentitySampler(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE),
             # sampler=RandomIdentitySampler_alignedreid(dataset.train, cfg.DATALOADER.NUM_INSTANCE),      # new add by gu
-            num_workers=num_workers, collate_fn=train_collate_fn
+            num_workers=num_workers, collate_fn=train_collator
         )
 
     val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms)
     val_loader = DataLoader(
         val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers,
-        collate_fn=val_collate_fn
+        collate_fn=val_collator
     )
     return train_loader, val_loader, len(dataset.query), num_classes

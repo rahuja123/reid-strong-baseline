@@ -18,20 +18,20 @@ _C = CN()
 
 _C.MODEL = CN()
 # Using cuda or cpu for training
-_C.MODEL.DEVICE = "cuda"
+
 # ID number of GPU
-_C.MODEL.DEVICE_ID = '0'
+# _C.MODEL.DEVICE_ID = '0'
 # Name of backbone
 _C.MODEL.NAME = 'resnet50'
 # Last stride of backbone
 _C.MODEL.LAST_STRIDE = 1
 # Path to pretrained model of backbone
-_C.MODEL.PRETRAIN_PATH = ''
+_C.MODEL.PRETRAIN_PATH = '../.torch/models/resnet50-19c8e357.pth'
 # Use ImageNet pretrained model to initialize backbone or use self trained model to initialize the whole model
 # Options: 'imagenet' or 'self'
 _C.MODEL.PRETRAIN_CHOICE = 'imagenet'
 # If train with BNNeck, options: 'bnneck' or 'no'
-_C.MODEL.NECK = 'bnneck'
+_C.MODEL.BNNECK = True
 # If train loss include center loss, options: 'yes' or 'no'. Loss with center loss has different optimizer configuration
 _C.MODEL.IF_WITH_CENTER = 'no'
 # The loss type of metric loss
@@ -42,6 +42,10 @@ _C.MODEL.METRIC_LOSS_TYPE = 'triplet'
 
 # If train with label smooth, options: 'on', 'off'
 _C.MODEL.IF_LABELSMOOTH = 'on'
+
+_C.MODEL.INSTANCE_NORM = False
+_C.MODEL.POOL = "AVG"
+
 
 
 # -----------------------------------------------------------------------------
@@ -135,6 +139,12 @@ _C.SOLVER.LOG_PERIOD = 100
 # epoch number of validation
 _C.SOLVER.EVAL_PERIOD = 50
 
+
+_C.SOLVER.MULTITASK_CAM_LOSS = CN()
+_C.SOLVER.MULTITASK_CAM_LOSS.WEIGHT = 1.0
+# Number of cameras in the dataset, set this to be number of cameras in the dataset
+_C.SOLVER.MULTITASK_CAM_LOSS.CAMS = 0
+_C.SOLVER.MULTITASK_CAM_LOSS.REVERSE_GRAD = False
 # Number of images per batch
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
 # see 2 images per batch
@@ -159,3 +169,4 @@ _C.TEST.FEAT_NORM = 'yes'
 # ---------------------------------------------------------------------------- #
 # Path to checkpoint and saved log of trained model
 _C.OUTPUT_DIR = ""
+_C.DEVICE = "cpu"

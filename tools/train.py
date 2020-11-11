@@ -11,15 +11,18 @@ import torch
 
 from torch.backends import cudnn
 
+
 sys.path.append('.')
 from config import cfg
+import modeling
 from data import make_data_loader
-from engine.trainer import do_train, do_train_with_center
-from modeling import build_model
+from engine.trainer_twotask import do_train, do_train_with_center
+# from modeling import build_model
 from layers import make_loss, make_loss_with_center
 from solver import make_optimizer, make_optimizer_with_center, WarmupMultiStepLR
 
 from utils.logger import setup_logger
+from utils import save_load
 
 
 def train(cfg):
@@ -27,7 +30,11 @@ def train(cfg):
     train_loader, val_loader, num_query, num_classes = make_data_loader(cfg)
 
     # prepare model
-    model = build_model(cfg, num_classes)
+    if cfg.SOLVER.MULTITASK_CAM_LOSS.CAMS > 0:
+        model = getattr(modeling, cfg.MODEL.NAME)(num_classes, cfg.SOLVER.MULTITASK_CAM_LOSS.CAMS, cfg.MODEL.LAST_STRIDE, cfg.MODEL.POOL, cfg.MODEL.BNNECK, cfg.SOLVER.MULTITASK_CAM_LOSS.REVERSE_GRAD, cfg.MODEL.INSTANCE_NORM)
+    else:
+        model = getattr(modeling, cfg.MODEL.NAME)(num_classes, cfg.MODEL.LAST_STRIDE, cfg.MODEL.POOL, cfg.MODEL.BNNECK)
+    # model = build_model(cfg, num_classes)
 
     if cfg.MODEL.IF_WITH_CENTER == 'no':
         print('Train without center loss, the loss type is', cfg.MODEL.METRIC_LOSS_TYPE)
@@ -67,7 +74,7 @@ def train(cfg):
             num_query,
             start_epoch     # add for using self trained model
         )
-    elif cfg.MODEL.IF_WITH_CENTER == 'yes':
+    elif cfg.MODEL.IF_WITH_CENTER == 'yes' :
         print('Train with center loss, the loss type is', cfg.MODEL.METRIC_LOSS_TYPE)
         loss_func, center_criterion = make_loss_with_center(cfg, num_classes)  # modified by gu
         optimizer, optimizer_center = make_optimizer_with_center(cfg, model, center_criterion)
@@ -148,8 +155,8 @@ def main():
             logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    if cfg.MODEL.DEVICE == "cuda":
-        os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID    # new add by gu
+    # if cfg.MODEL.DEVICE == "cuda":
+    #     os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID    # new add by gu
     cudnn.benchmark = True
     train(cfg)
 

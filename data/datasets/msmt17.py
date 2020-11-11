@@ -26,7 +26,7 @@ class MSMT17(BaseImageDataset):
     # images: 32621 (train) + 11659 (query) + 82161 (gallery)
     # cameras: 15
     """
-    dataset_dir = 'msmt17'
+    dataset_dir = ''
 
     def __init__(self,root='/home/haoluo/data', verbose=True, **kwargs):
         super(MSMT17, self).__init__()
